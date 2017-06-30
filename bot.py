@@ -1,5 +1,6 @@
 import discord
 import asyncio 
+import re
 from time import gmtime, strftime
 from db import DB
 
@@ -9,8 +10,8 @@ with open('../counter_token.txt', 'r') as discord_file:
 
 prefix = ";"
 client = discord.Client()
-color = discord.Color(15452014)
-db = None
+color = discord.Color(3312582)
+db = DB("328899063892148224", "db/messages.p", prefix)
 
 @client.event
 @asyncio.coroutine
@@ -21,7 +22,7 @@ def on_ready():
     print(client.user.id)
     print('------\n')
     yield from client.send_message(client.get_channel("315552571823489024"), "Connected at " + strftime("%Y-%m-%d %H:%M:%S", gmtime()))
-    db = DB(client.user.id)
+    db.load()
 
 @client.event
 @asyncio.coroutine
@@ -32,21 +33,25 @@ def on_message(message):
     command = message.content[1:].strip().split(" ")
     args = command[1:]
     command = command[0]
-    if command is "count":
-        regex = " ".join(args[:-1 or None])
+    if command.startswith("count"):
+        regex = ""
         user = ""
-        if len(args) > 1:
-            if args[-1] is "me":
+        if len(args) > 1 and (len(message.mentions) is not 0 or args[-1].startswith("me")):
+            regex = " ".join(args[:-1]).strip()
+            if args[-1].strip().lower().startswith("me"):
                 user = message.author.id
             else:
-                user = "".join(re.findall(r'\d+', args[-1])
-        num = db.count(regex, user)
-        if user = "":
-            user = "anyone"
+                user = message.mentions[0].id#"".join(re.findall(r'\d+', args[-1]))
         else:
-            user = get_user_info(user).display_name
-        em = discord.Embed(title="Number of Times " + user.title() + " Has Said " + regex, color=color)
-        em.add_field(name="Total Count", value="**" + str(num) + "**")
+            regex = regex = " ".join(args).strip()
+        num = db.count(regex, user)
+        if user is "":
+            user = "anyone"
+        elif args[-1] is "me":
+            user = message.author.name
+        else:
+            user = message.mentions[0].name
+        em = discord.Embed(title="Number of Times " + user.title() + " Has Said " + regex, description=str(num), color=color)
         yield from client.send_message(message.channel, embed=em)
 
 @client.event
@@ -54,3 +59,4 @@ def on_message(message):
 def on_message_edit(before, after):
     db.save(after, str(before.id))
 
+client.run(DISCORD_TOKEN)

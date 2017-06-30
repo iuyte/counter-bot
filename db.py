@@ -3,42 +3,57 @@ import pickle
 
 class DB():
     id = ""
-    def __init__(self, id):
+    dbpath = ""
+    ignore = ""
+    data = []
+
+    def __init__(self, id, dbpath, ignore):
             self.id = str(id)
+            self.dbpath = dbpath
+            self.ignore = ignore
+            self.data = []
 
     def load(self):
-        with open("db/messages.p", mode="rb") as DB:
-            return DB.load()
-
+        data = []
+        with open(self.dbpath, mode="rb") as DB:
+            data = pickle.load(DB)
+        self.data = data
 
     def getIndexById(self, messageid):
-        data = load()
+        data = self.data
         for d in range(len(data)):
             if data[d].id is messageid:
                 return d
         return None
 
     def save(self, message, messageid=""):
-        o = load()
-        if id is "":
-            o = o.append(message)
+        o = self.data
+        if o is None:
+            o = [message]
+        if messageid is "":
+            o.append(message)
         else:
-            o[getIndexById(messageid)].content += message.content
-        with open("db/messages.p", mode="wb") as DB:
-            pickle.dump(DB, o)
+            try:
+                o[self.getIndexById(messageid)].content += message.content
+            except:
+                o.append(message)
+        with open(self.dbpath, mode="wb") as DB:
+            pickle.dump(o, DB)
+        self.data = o
 
     def search(self, regex, userid=""):
-        data = load()
+        data = self.data
         matches = []
         if userid is "":
             for d in data:
-                if bool(re.search(regex, d.content)) and str(d.author.id) is not self.botid:
+                if bool(re.search(regex, d.content)) and str(d.author.id) is not self.id and not d.content.startswith(self.ignore):
                     matches.append(str(d.id))
         else:
             for d in data:
-                if bool(re.search(regex, d.content)) and str(d.author.id) is userid:
+                if bool(re.search(regex, d.content)) and str(d.author.id) is userid and not d.content.startswith(self.ignore):
                     matches.append(str(d.id))
         return matches
 
-    def count(self, key, userid=""):
-        return len(search(regex, userid))
+    def count(self, regex, userid=""):
+        return len(self.search(regex, userid))
+
