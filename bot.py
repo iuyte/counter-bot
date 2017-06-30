@@ -4,7 +4,7 @@ from time import gmtime, strftime
 from db import DB
 
 with open('../counter_token.txt', 'r') as discord_file:
-    DISCORD_TOKEN = discord_file.read()[:-2]
+    DISCORD_TOKEN = discord_file.read().split(";")[0]
     print(DISCORD_TOKEN, end=';\n')
 
 prefix = ";"
