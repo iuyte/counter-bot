@@ -1,9 +1,9 @@
 import re
 import pickle
 
-class DB(object):
+class DB():
     id = ""
-    def init(self, id):
+    def __init__(self, id):
             self.id = str(id)
 
     def load(self):
